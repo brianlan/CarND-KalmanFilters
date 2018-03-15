@@ -3,6 +3,23 @@
 
 from math import *
 
+"""
+- Prediction is not necessarily to happen when there's a observation, because the observation could miss for some 
+  time steps in the real world actually, but the prediction should always triggered when the time elapsed.
+- KF always assumes there's already a prediction for current time step t (it could be a initial guess if we know
+  nothing about the state). If we got a measurement at time step t, we'll update the state x and P according to the 
+  newly observed data (at this moment, x should be close to the measurement). At the same time, the error of current
+  measurement and the prediction we were done at time step t - 1 is taken into account to measure the uncertainty
+  and the hidden state (e.g. velocity). OK, the next thing we're going to do is to give a prediction for 
+  time step t + 1. And this rule goes over and over.
+- In the course example, we have a state vector containing position and velocity. We do observe position but nothing 
+  about the velocity. But the interesting thing is we can still maintain a quite accurate velocity value using 
+  position observations and our transition matrix F. The velocity here is so called hidden state, which could be the
+  observable variables' driven power.
+- Question: why the uncertainty P is quite different before and after the prediction-step?
+
+"""
+
 
 class Matrix:
     """implements basic operations of a matrix class"""
@@ -141,7 +158,7 @@ class Matrix:
 
 def kalman_filter(x, P):
     for n in range(len(measurements)):
-
+        pass
     # measurement update
 
     # prediction
@@ -163,7 +180,29 @@ H = Matrix([[1., 0.]])  # measurement function
 R = Matrix([[1.]])  # measurement uncertainty
 I = Matrix([[1., 0.], [0., 1.]])  # identity matrix
 
-print(kalman_filter(x, P))
+for z in measurements:
+    print('-' * 80)
+    # measurement update
+    y = Matrix([[z]]) - H * x
+    S = H * P * H.transpose() + R
+    K = P * H.transpose() * S.inverse()
+    x = x + K * y
+    P = (I - K * H) * P
+
+    print('x=')
+    x.show()
+    print('P=')
+    P.show()
+
+    # prediction
+    x = F * x + u
+    P = F * P * F.transpose()
+
+    print('x=')
+    x.show()
+    print('P=')
+    P.show()
+
 # output should be:
 # x: [[3.9996664447958645], [0.9999998335552873]]
 # P: [[2.3318904241194827, 0.9991676099921091], [0.9991676099921067, 0.49950058263974184]]
