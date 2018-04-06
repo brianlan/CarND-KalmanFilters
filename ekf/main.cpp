@@ -21,7 +21,7 @@ int main() {
 
 	// hardcoded input file with laser and radar measurements
 	string in_file_name_ = "obj_pose-laser-radar-synthetic-input.txt";
-	ifstream in_file(in_file_name_.c_str(),std::ifstream::in);
+	ifstream in_file(in_file_name_.c_str(), std::ifstream::in);
 
 	if (!in_file.is_open()) {
 		cout << "Cannot open input file: " << in_file_name_ << endl;
@@ -39,7 +39,7 @@ int main() {
 		iss >> sensor_type;	//reads first element from the current line
 		int64_t timestamp;
 		if(sensor_type.compare("L") == 0){	//laser measurement
-			//read measurements
+			//read 12measurements
 			meas_package.sensor_type_ = MeasurementPackage::LASER;
 			meas_package.raw_measurements_ = VectorXd(2);
 			float x;

@@ -1,5 +1,6 @@
 #include "../Eigen/Dense"
 #include <iostream>
+#include <cmath>
 #include "tracking.h"
 
 using namespace std;
@@ -38,6 +39,9 @@ Tracking::Tracking() {
 			  0, 1, 0, 1,
 			  0, 0, 1, 0,
 			  0, 0, 0, 1;
+	
+	// initialize Q
+	kf_.Q_ = MatrixXd(4, 4);
 
 	//set the acceleration noise components
 	noise_ax = 5;
@@ -68,9 +72,27 @@ void Tracking::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 	
     // TODO: YOUR CODE HERE
 	//1. Modify the F matrix so that the time is integrated
+	kf_.F_ << 1, 0, dt, 0,
+			  0, 1, 0, dt,
+			  0, 0, 1, 0,
+			  0, 0, 0, 1;
+
 	//2. Set the process covariance matrix Q
+	float sqr_sigma_x = pow(noise_ax, 2);
+	float sqr_sigma_y = pow(noise_ay, 2);
+	kf_.Q_ << pow(dt, 4) / 4 * sqr_sigma_x, 0, pow(dt, 3) / 2 * sqr_sigma_x, 0,
+	          0, pow(dt, 4) / 4 * sqr_sigma_y, 0, pow(dt, 3) / 2 * sqr_sigma_y,
+			  pow(dt, 3) / 2 * sqr_sigma_x, 0, pow(dt, 2) * sqr_sigma_x, 0,
+			  0, pow(dt, 3) / 2 * sqr_sigma_y, 0, pow(dt, 2) * sqr_sigma_y;
+
 	//3. Call the Kalman Filter predict() function
+	kf_.Predict();
+
 	//4. Call the Kalman Filter update() function
+	VectorXd z = VectorXd(2);
+	z << measurement_pack.raw_measurements_[0], measurement_pack.raw_measurements_[1];
+	kf_.Update(z);
+
 	// with the most recent raw measurements_
 	
 	std::cout << "x_= " << kf_.x_ << std::endl;
